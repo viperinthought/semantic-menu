@@ -9,40 +9,45 @@ class SemanticMenuTest < ActiveSupport::TestCase
   def test_menu_to_s
     assert_equal SemanticMenu.new(nil) {}.to_s, '<ul class="menu"></ul>'
   end
-  
+
   def test_menu_item_to_s
     MenuItem.any_instance.stubs(:active?).returns(false)
     assert_equal '<li><a href="link">title</a></li>',
                  MenuItem.new("title", "link", 2).to_s
-                 
+
   end
-  
+
   def test_menu_item_passes_options_to_link
     MenuItem.any_instance.stubs(:active?).returns(false)
     assert_equal '<li><a href="link" class="button">title</a></li>',
                  MenuItem.new("title", "link", 2, :class => 'button').to_s
   end
-  
+
   def test_menu_item_with_one_child
     MenuItem.any_instance.stubs(:active?).returns(false)
     assert_equal '<ul class="mymenu"><li><a href="link">title</a></li></ul>', default_menu.to_s
   end
-  
+
+  def test_menu_item_with_one_child_and_without_link
+    MenuItem.any_instance.stubs(:active?).returns(false)
+    assert_equal '<ul class="mymenu"><li class="foo">title</li></ul>', default_menu_without_link.to_s
+  end
+
   def test_menu_item_with_two_children
     MenuItem.any_instance.stubs(:active?).returns(false)
     menu = default_menu
     menu.add 'title2', 'link2'
-    assert_equal '<ul class="mymenu">' + 
+    assert_equal '<ul class="mymenu">' +
                     '<li><a href="link">title</a></li>' +
                     '<li><a href="link2">title2</a></li></ul>', menu.to_s
   end
-  
+
   def test_menu_item_shows_active_if_on_current_page
     item = MenuItem.new("title", "link", 2)
     item.stubs(:active?).returns(true)
     assert_equal '<li class="active"><a href="link">title</a></li>', item.to_s
   end
-  
+
   def test_nested_menu
     MenuItem.any_instance.stubs(:active?).returns(true)
     menu = SemanticMenu.new(nil) do |root|
@@ -61,7 +66,7 @@ class SemanticMenuTest < ActiveSupport::TestCase
 NESTED
     assert_equal expected.gsub(/\n */, '').gsub(/\n/, ''), menu.to_s
   end
-  
+
   def test_parent_is_active_when_any_child_is
     l1, l1_1, l1_2 = [nil] * 3
     menu = SemanticMenu.new(nil) do |root|
@@ -75,7 +80,7 @@ NESTED
     l1.stubs(:on_current_page?).returns(false)
     assert l1.active?
   end
-  
+
   #def test_example_output_for_developer_laziness
   #  MenuItem.any_instance.stubs(:active?).returns(false)
   #  menu = SemanticMenu.new(nil, :class => 'top_level_nav') do |root|
@@ -88,11 +93,17 @@ NESTED
   #  end
   #  puts menu
   #end
-  
+
   protected
     def default_menu
       SemanticMenu.new nil, :class => 'mymenu' do |root|
         root.add 'title', 'link'
+      end
+    end
+
+    def default_menu_without_link
+      SemanticMenu.new nil, :class => 'mymenu' do |root|
+        root.add 'title', :class => 'foo'
       end
     end
 end
